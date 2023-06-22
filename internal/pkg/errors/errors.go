@@ -25,14 +25,16 @@ var (
 	ErrVoiceAlreadyExists = errors.New("voice already exists")
 
 	// Post
+	ErrPostNotFound       = errors.New("post not found")
 	ErrParentPostNotFound = errors.New("parent post not found")
 
 	// Params
+	ErrInvalidIDParam    = errors.New("invalid id param")
 	ErrInvalidLimitParam = errors.New("invalid limit param")
 
 	// HTTP
 	ErrReadBody = errors.New("read request body error")
 
 	// JSON
-	ErrParseJson = errors.New("parse json error")
+	ErrParseJSON = errors.New("parse json error")
 )

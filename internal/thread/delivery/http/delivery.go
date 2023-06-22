@@ -41,7 +41,7 @@ func (del *delivery) CreateThread(w http.ResponseWriter, r *http.Request, p http
 
 	thread := models.Thread{}
 	if err := thread.UnmarshalJSON(body); err != nil {
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	thread.Forum = slug
@@ -79,7 +79,7 @@ func (del *delivery) CreatePost(w http.ResponseWriter, r *http.Request, p httpro
 
 	var posts models.PostList
 	if err := posts.UnmarshalJSON(body); err != nil {
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	posts, err = del.serv.CreatePosts(slugOrId, posts)
@@ -130,7 +130,7 @@ func (del *delivery) UpdateThread(w http.ResponseWriter, r *http.Request, p http
 
 	thread := &models.Thread{}
 	if err := thread.UnmarshalJSON(body); err != nil {
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	updatedThread, err := del.serv.UpdateThread(slugOrId, thread)
@@ -208,7 +208,7 @@ func (del *delivery) AddVote(w http.ResponseWriter, r *http.Request, p httproute
 
 	vote := models.Vote{}
 	if err := vote.UnmarshalJSON(body); err != nil {
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	thread, err := del.serv.AddVote(slugOrId, &vote)

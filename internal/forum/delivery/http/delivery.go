@@ -38,7 +38,7 @@ func (del *delivery) Create(w http.ResponseWriter, r *http.Request, p httprouter
 	err = forum.UnmarshalJSON(body)
 	if err != nil {
 		// TODO: log error
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	forum, errCreate := del.serv.Create(context.Background(), forum)

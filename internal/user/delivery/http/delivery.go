@@ -38,7 +38,7 @@ func (del *delivery) Create(w http.ResponseWriter, r *http.Request, p httprouter
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		// TODO: log error
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	params := &pkgUser.CreateParams{
@@ -113,7 +113,7 @@ func (del *delivery) Update(w http.ResponseWriter, r *http.Request, p httprouter
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		// TODO: log error
-		return pkgErrors.ErrParseJson
+		return pkgErrors.ErrParseJSON
 	}
 
 	params := &pkgUser.UpdateParams{
