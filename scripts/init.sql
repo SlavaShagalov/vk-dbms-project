@@ -41,3 +41,26 @@ CREATE TABLE IF NOT EXISTS threads
     slug       citext,
     created_at timestamp with time zone DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS posts
+(
+    id       bigserial PRIMARY KEY,
+    parent   int,
+    author   citext   NOT NULL REFERENCES users (nickname),
+    message  text     NOT NULL,
+    isEdited boolean                  DEFAULT false,
+    forum    citext REFERENCES forums (slug),
+    thread   bigint REFERENCES threads (id),
+    path     BIGINT[] NOT NULL        DEFAULT ARRAY []::BIGINT[],
+    created  timestamp with time zone DEFAULT now(),
+    CONSTRAINT thread_check CHECK (thread IS NOT NULL)
+);
+
+CREATE TABLE IF NOT EXISTS votes
+(
+    id       bigserial,
+    nickname citext NOT NULL REFERENCES users (nickname),
+    thread   bigint NOT NULL REFERENCES threads (id),
+    voice    int    NOT NULL,
+    PRIMARY KEY (nickname, thread)
+);
