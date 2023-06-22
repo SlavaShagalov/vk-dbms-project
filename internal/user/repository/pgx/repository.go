@@ -37,7 +37,7 @@ func (rep *repository) Create(ctx context.Context, params *pkgUser.CreateParams)
 	if err := row.Scan(&user.ID, &user.Nickname, &user.Fullname, &user.About, &user.Email); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.ConstraintName == "users_email_key" || pgErr.ConstraintName == "users_nickname_key" {
+			if pgErr.ConstraintName == "users_email_key" || pgErr.ConstraintName == "users_pkey" {
 				users := make([]models.User, 0, 2)
 
 				if user, err = rep.GetByNickname(ctx, params.Nickname); err == nil {

@@ -22,18 +22,13 @@ func ProdConfig() zapcore.EncoderConfig {
 	}
 }
 
-func NewProdLogger() (*zap.Logger, *os.File, error) {
-	cfg := ProdConfig()
+func NewProdLogger() *zap.Logger {
+	consoleCfg := ProdConfig()
 
-	fileEncoder := zapcore.NewConsoleEncoder(cfg)
-	file, err := os.OpenFile("./logs/backend.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, nil, err
-	}
+	consoleEncoder := zapcore.NewConsoleEncoder(consoleCfg)
+	consoleCore := zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), zapcore.DebugLevel)
 
-	fileCore := zapcore.NewCore(fileEncoder, zapcore.Lock(zapcore.AddSync(file)), zapcore.DebugLevel)
+	logger := zap.New(consoleCore, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 
-	logger := zap.New(fileCore, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
-
-	return logger, file, nil
+	return logger
 }

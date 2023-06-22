@@ -21,7 +21,7 @@ type delivery struct {
 func RegisterHandlers(router *httprouter.Router, log *zap.Logger, serv pkgThread.Service) {
 	del := delivery{serv, log}
 
-	router.POST("/api/forum/:slug/create", mw.AccessLog(mw.HandleError(del.CreateThread, log), log))
+	//router.POST("/api/forum/:slug/create", mw.AccessLog(mw.HandleError(del.CreateThread, log), log))
 	router.GET("/api/thread/:slug_or_id/details", mw.AccessLog(mw.HandleError(del.GetThread, log), log))
 	router.POST("/api/thread/:slug_or_id/details", mw.AccessLog(mw.HandleError(del.UpdateThread, log), log))
 
