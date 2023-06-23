@@ -12,33 +12,32 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS forums
 (
     id            bigserial,
-    title         text   NOT NULL,
     slug          citext NOT NULL UNIQUE PRIMARY KEY,
-    user_nickname citext
-        CONSTRAINT user_nickname NOT NULL REFERENCES users (nickname),
+    user_nickname citext NOT NULL REFERENCES users (nickname),
+    title         text   NOT NULL,
     threads       int DEFAULT 0,
     posts         int DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS forum_users
 (
+    forum    citext NOT NULL REFERENCES forums (slug),
     nickname citext NOT NULL COLLATE "ucs_basic" REFERENCES users (nickname),
     fullname text   NOT NULL,
     about    text   NOT NULL,
     email    citext NOT NULL,
-    forum    citext NOT NULL REFERENCES forums (slug),
     PRIMARY KEY (nickname, forum)
 );
 
 CREATE TABLE IF NOT EXISTS threads
 (
-    id         bigserial PRIMARY KEY,
-    title      text   NOT NULL,
-    author     citext NOT NULL REFERENCES users (nickname),
-    forum      citext NOT NULL REFERENCES forums (slug),
-    message    text   NOT NULL,
-    votes      int                      DEFAULT 0,
-    slug       citext,
+    id      bigserial PRIMARY KEY,
+    author  citext NOT NULL REFERENCES users (nickname),
+    forum   citext NOT NULL REFERENCES forums (slug),
+    title   text   NOT NULL,
+    message text   NOT NULL,
+    votes   int                      DEFAULT 0,
+    slug    citext,
     created timestamp with time zone DEFAULT now()
 );
 
@@ -47,10 +46,10 @@ CREATE TABLE IF NOT EXISTS posts
     id       bigserial PRIMARY KEY,
     parent   int,
     author   citext   NOT NULL REFERENCES users (nickname),
-    message  text     NOT NULL,
-    isEdited boolean                  DEFAULT false,
     forum    citext REFERENCES forums (slug),
     thread   bigint REFERENCES threads (id),
+    message  text     NOT NULL,
+    isEdited boolean                  DEFAULT false,
     path     BIGINT[] NOT NULL        DEFAULT ARRAY []::BIGINT[],
     created  timestamp with time zone DEFAULT now(),
     CONSTRAINT thread_check CHECK (thread IS NOT NULL)
@@ -65,27 +64,35 @@ CREATE TABLE IF NOT EXISTS votes
     PRIMARY KEY (nickname, thread)
 );
 
+-- Триггер для установки у нового поста поля path, которое содержит id предков, где
+-- самый старший предок находится в первом элементе массива path
 CREATE OR REPLACE FUNCTION update_post_path()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
-    NEW.path = case when NEW.parent = 0 then array_append(NEW.path, NEW.id) else array_append((SELECT path FROM posts WHERE id = NEW.parent), NEW.id) end;
+    NEW.path = case
+                   when NEW.parent = 0 then array_append(NEW.path, NEW.id)
+                   else array_append((SELECT path FROM posts WHERE id = NEW.parent), NEW.id) end;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_post_path_trigger
-    BEFORE INSERT ON posts
+    BEFORE INSERT
+    ON posts
     FOR EACH ROW
 EXECUTE FUNCTION update_post_path();
 
-
+-- Триггер для добавления пользователя, создавшего пост или тред впервые на данном форуме, в
+-- таблицу пользователей данного форума.
 CREATE OR REPLACE FUNCTION update_forum_users()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 DECLARE
     nickname_tmp citext;
     fullname_tmp text;
-    about_tmp text;
-    email_tmp citext;
+    about_tmp    text;
+    email_tmp    citext;
 BEGIN
     SELECT nickname, fullname, about, email
     FROM users
@@ -100,17 +107,20 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_forum_users_by_post_trigger
-    AFTER INSERT ON posts
+    AFTER INSERT
+    ON posts
     FOR EACH ROW
 EXECUTE FUNCTION update_forum_users();
 
 CREATE TRIGGER update_forum_users_by_thread_trigger
-    AFTER INSERT ON threads
+    AFTER INSERT
+    ON threads
     FOR EACH ROW
 EXECUTE FUNCTION update_forum_users();
 
 
--- counter updaters
+-- Триггеры для увеличения полей счетчиков (кол-во тредов и постов у форума и кол-во голосов у треда),
+-- а также еще один триггер для обновления счетчика голосов треда.
 CREATE OR REPLACE FUNCTION increment_forum_threads()
     RETURNS TRIGGER AS
 $$
@@ -139,7 +149,9 @@ CREATE OR REPLACE FUNCTION increment_thread_votes()
     RETURNS TRIGGER AS
 $$
 BEGIN
-    UPDATE threads SET votes = threads.votes + new.voice WHERE id = new.thread;
+    UPDATE threads
+    SET votes = threads.votes + new.voice
+    WHERE id = new.thread;
     RETURN NEW;
 END;
 $$
@@ -150,31 +162,34 @@ CREATE OR REPLACE FUNCTION update_thread_votes()
 $$
 BEGIN
     UPDATE threads
-    SET votes =  votes + NEW.voice - OLD.voice
+    SET votes = votes + NEW.voice - OLD.voice
     WHERE id = NEW.thread;
     RETURN NEW;
 END;
 $$
     LANGUAGE plpgsql;
 
--- counter triggers
 CREATE TRIGGER increment_forum_threads_trigger
-    AFTER INSERT ON threads
+    AFTER INSERT
+    ON threads
     FOR EACH ROW
 EXECUTE FUNCTION increment_forum_threads();
 
 CREATE TRIGGER increment_forum_posts_trigger
-    AFTER INSERT ON posts
+    AFTER INSERT
+    ON posts
     FOR EACH ROW
 EXECUTE FUNCTION increment_forum_posts();
 
 CREATE TRIGGER increment_thread_votes_trigger
-    AFTER INSERT ON votes
+    AFTER INSERT
+    ON votes
     FOR EACH ROW
 EXECUTE FUNCTION increment_thread_votes();
 
 CREATE TRIGGER update_thread_votes_trigger
-    AFTER UPDATE ON votes
+    AFTER UPDATE
+    ON votes
     FOR EACH ROW
 EXECUTE FUNCTION update_thread_votes();
 
@@ -182,7 +197,6 @@ EXECUTE FUNCTION update_thread_votes();
 
 -- Users
 CREATE INDEX IF NOT EXISTS user_nickname_hash ON users using hash (nickname);
-CREATE INDEX IF NOT EXISTS  user_nickname_email ON users (nickname, email);
 
 -- Threads
 CREATE INDEX IF NOT EXISTS thread_slug_hash ON threads USING hash (slug);

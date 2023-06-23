@@ -47,7 +47,6 @@ func (rep *repository) Create(ctx context.Context, forum *models.Forum) (*models
 	}
 
 	row := rep.pool.QueryRow(ctx, createCmd, forum.Title, forum.User, forum.Slug)
-
 	if err := row.Scan(&forum.ID, &forum.Title, &forum.User, &forum.Slug, &forum.Posts, &forum.Threads); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -56,7 +55,7 @@ func (rep *repository) Create(ctx context.Context, forum *models.Forum) (*models
 				return tmp, pkgErrors.ErrForumAlreadyExists
 			}
 
-			if pgErr.ConstraintName == "user_nickname" {
+			if pgErr.ConstraintName == "forums_user_nickname_fkey" {
 				return forum, pkgErrors.ErrUserNotFound
 			}
 

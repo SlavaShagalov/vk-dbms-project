@@ -87,7 +87,6 @@ func (rep *repository) CreatePosts(slugOrId string, posts []models.Post) ([]mode
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			rep.log.Error("TEST", zap.Error(err))
 			if pgErr.Message == "Invalid parent" {
 				return []models.Post{}, pkgErrors.ErrParentPostNotFound
 			}
