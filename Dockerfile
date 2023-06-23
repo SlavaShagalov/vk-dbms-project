@@ -8,12 +8,12 @@ RUN go build -o app ./cmd/backend/main.go
 #FROM postgres:14-alpine3.18 as db
 FROM postgres:14 as db
 USER postgres
-COPY ./scripts .
+COPY db .
 RUN pg_createcluster 14 main && \
     /etc/init.d/postgresql start &&\
     psql --command "CREATE USER forum WITH SUPERUSER PASSWORD 'password';" &&\
     createdb -O forum forum && \
-    psql -f ./init.sql -d forum && \
+    psql -f ./db.sql -d forum && \
     /etc/init.d/postgresql stop
 
 #psql -f ./fill_data.sql -d forum && \
