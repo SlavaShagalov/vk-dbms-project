@@ -56,12 +56,12 @@ func (del *delivery) Create(w http.ResponseWriter, r *http.Request, p httprouter
 				return pkgErrors.ErrInternal
 			}
 
-			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
 			_, err = w.Write(data)
 			if err != nil {
 				return pkgErrors.ErrInternal
 			}
-			return pkgErrors.ErrUserAlreadyExists
+			return nil
 		}
 		return err
 	}
@@ -72,7 +72,7 @@ func (del *delivery) Create(w http.ResponseWriter, r *http.Request, p httprouter
 		return pkgErrors.ErrInternal
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write(data)
 	if err != nil {
 		return pkgErrors.ErrInternal
@@ -93,7 +93,6 @@ func (del *delivery) GetByNickname(w http.ResponseWriter, _ *http.Request, p htt
 		return pkgErrors.ErrInternal
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(data)
 	if err != nil {
 		return pkgErrors.ErrInternal
@@ -112,7 +111,6 @@ func (del *delivery) Update(w http.ResponseWriter, r *http.Request, p httprouter
 	var request updateRequest
 	err = request.UnmarshalJSON(body)
 	if err != nil {
-		// TODO: log error
 		return pkgErrors.ErrParseJSON
 	}
 
@@ -130,14 +128,11 @@ func (del *delivery) Update(w http.ResponseWriter, r *http.Request, p httprouter
 	response := newUpdateResponse(user)
 	data, err := response.MarshalJSON()
 	if err != nil {
-		// TODO: log error
 		return pkgErrors.ErrInternal
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(data)
 	if err != nil {
-		// TODO: log error
 		return pkgErrors.ErrInternal
 	}
 	return nil

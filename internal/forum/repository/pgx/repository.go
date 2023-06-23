@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/SlavaShagalov/vk-dbms-project/internal/pkg/constants"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -88,35 +89,71 @@ func (rep *repository) Get(ctx context.Context, slug string) (*models.Forum, err
 const createThreadCmd = `
 INSERT INTO threads (title, author, forum, message, slug, created)
 VALUES($1, $2, $3, $4, $5, $6)
-RETURNING  id, title, author, forum, message, slug, created;`
+RETURNING  id, title, author, (SELECT slug from forums WHERE slug = $3), message, slug, created;`
 
-func (rep *repository) CreateThread(ctx context.Context, thread *models.Thread) (models.Thread, error) {
-	row := rep.pool.QueryRow(ctx, createThreadCmd,
+func (rep *repository) CreateThread(thread *models.Thread) (models.Thread, error) {
+	if thread.Slug != "" {
+		tmp, err := rep.GetThread(thread.Slug)
+		if err == nil {
+			return tmp, pkgErrors.ErrThreadAlreadyExists
+		}
+	}
+
+	row := rep.pool.QueryRow(
+		context.Background(),
+		createThreadCmd,
 		thread.Title,
 		thread.Author,
 		thread.Forum,
 		thread.Message,
 		thread.Slug,
-		thread.CreatedAt)
+		thread.Created,
+	)
 	tmp := models.Thread{}
-	err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &thread.CreatedAt)
+	err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &tmp.Created)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.ConstraintName == "threads_forum_fkey" {
+			switch pgErr.ConstraintName {
+			case "threads_forum_fkey":
 				return models.Thread{}, pkgErrors.ErrForumNotFound
-			}
-
-			if pgErr.ConstraintName == "threads_slug_key" {
-				return models.Thread{}, pkgErrors.ErrThreadAlreadyExists
-			}
-
-			if pgErr.ConstraintName == "threads_author_fkey" {
+			case "threads_author_fkey":
 				return models.Thread{}, pkgErrors.ErrUserNotFound
+			default:
+				return tmp, pkgErrors.ErrInternal
 			}
-
-			return tmp, pkgErrors.ErrInternal
 		}
+	}
+
+	return tmp, nil
+}
+
+const getThreadBySlugCmd = `
+SELECT  id, title, author, forum, message, slug, votes, created
+FROM threads
+WHERE slug = $1;`
+
+const getThreadByIdCmd = `
+SELECT  id, title, author, forum, message, slug, votes, created
+FROM threads
+WHERE id = $1;`
+
+func (rep *repository) GetThread(slugOrId string) (models.Thread, error) {
+	tmp := models.Thread{}
+	var row pgx.Row
+
+	if id, err := strconv.Atoi(slugOrId); err == nil {
+		row = rep.pool.QueryRow(context.Background(), getThreadByIdCmd, id)
+	} else {
+		row = rep.pool.QueryRow(context.Background(), getThreadBySlugCmd, slugOrId)
+	}
+
+	if err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &tmp.Votes, &tmp.Created); err != nil {
+		if errors.Is(pgx.ErrNoRows, err) {
+			return tmp, pkgErrors.ErrThreadNotFound
+		}
+		rep.log.Error(constants.DBError, zap.Error(err))
+		return tmp, pkgErrors.ErrInternal
 	}
 
 	return tmp, nil
@@ -268,7 +305,7 @@ func (rep *repository) GetForumThreads(ctx context.Context, slug string, limit i
 			&tmp.Message,
 			&tmp.Slug,
 			&tmp.Votes,
-			&tmp.CreatedAt,
+			&tmp.Created,
 		); err != nil {
 			rep.log.Error(constants.DBError, zap.Error(err))
 			return threads, pkgErrors.ErrInternal

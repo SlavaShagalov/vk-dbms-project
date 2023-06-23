@@ -31,6 +31,8 @@ var (
 	// Params
 	ErrInvalidIDParam    = errors.New("invalid id param")
 	ErrInvalidLimitParam = errors.New("invalid limit param")
+	ErrInvalidSinceParam = errors.New("invalid since param")
+	ErrInvalidDescParam  = errors.New("invalid desc param")
 
 	// HTTP
 	ErrReadBody = errors.New("read request body error")

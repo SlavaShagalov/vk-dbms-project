@@ -111,10 +111,10 @@ func (rep *repository) GetByEmail(ctx context.Context, email string) (*models.Us
 
 const updateCmd = `
 UPDATE users
-SET fullname = $1,
-    about    = $2,
-    email    = $3
-WHERE nickname = $4
+SET fullname = case when trim($2) = '' then fullname else $2 end,
+	about = case when trim($3) = '' then about else $3 end,
+	email = case when trim($4) = '' then email else $4 end
+WHERE nickname = $1
 RETURNING id, nickname, fullname, about, email;`
 
 func (rep *repository) Update(ctx context.Context, params *pkgUser.UpdateParams) (*models.User, error) {

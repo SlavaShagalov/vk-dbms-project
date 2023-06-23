@@ -82,7 +82,7 @@ WHERE id = $1;`
 func (rep *repository) GetPostThread(post *models.Post) (models.Thread, error) {
 	tmp := models.Thread{}
 	row := rep.pool.QueryRow(context.Background(), getPostThread, post.Thread)
-	if err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &tmp.Votes, &tmp.CreatedAt); err != nil {
+	if err := row.Scan(&tmp.Id, &tmp.Title, &tmp.Author, &tmp.Forum, &tmp.Message, &tmp.Slug, &tmp.Votes, &tmp.Created); err != nil {
 		if errors.Is(pgx.ErrNoRows, err) {
 			return tmp, pkgErrors.ErrUserNotFound
 		}

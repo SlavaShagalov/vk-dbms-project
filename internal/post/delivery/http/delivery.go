@@ -26,12 +26,14 @@ func RegisterHandlers(router *httprouter.Router, log *zap.Logger, serv pkgPost.S
 }
 
 func (del *delivery) GetPost(w http.ResponseWriter, r *http.Request, p httprouter.Params) error {
-	related := p.ByName("related")
 	idStr := p.ByName("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return pkgErrors.ErrInvalidIDParam
 	}
+
+	queryValues := r.URL.Query()
+	related := queryValues.Get("related")
 
 	fullPost, err := del.serv.GetPost(id, strings.Split(related, ","))
 	if err != nil {
@@ -43,7 +45,6 @@ func (del *delivery) GetPost(w http.ResponseWriter, r *http.Request, p httproute
 		return pkgErrors.ErrInternal
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(data)
 	if err != nil {
 		return pkgErrors.ErrInternal
@@ -79,7 +80,6 @@ func (del *delivery) UpdatePost(w http.ResponseWriter, r *http.Request, p httpro
 		return pkgErrors.ErrInternal
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(data)
 	if err != nil {
 		return pkgErrors.ErrInternal

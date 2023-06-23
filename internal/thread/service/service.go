@@ -15,10 +15,6 @@ func NewService(rep thread.Repository, log *zap.Logger) thread.Service {
 	return &service{rep: rep, log: log}
 }
 
-func (serv *service) CreateThread(thread *models.Thread) (models.Thread, error) {
-	return serv.rep.CreateThread(thread)
-}
-
 func (serv *service) CreatePosts(slugOrId string, posts []models.Post) (models.PostList, error) {
 	return serv.rep.CreatePosts(slugOrId, posts)
 }

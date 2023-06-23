@@ -24,7 +24,7 @@ var httpCodes = map[error]int{
 
 	// Post
 	ErrPostNotFound:       http.StatusNotFound,
-	ErrParentPostNotFound: http.StatusNotFound,
+	ErrParentPostNotFound: http.StatusConflict,
 
 	// Params
 	ErrInvalidIDParam:    http.StatusBadRequest,

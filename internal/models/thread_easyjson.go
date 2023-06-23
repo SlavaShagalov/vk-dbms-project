@@ -116,9 +116,9 @@ func easyjson2d00218DecodeGithubComSlavaShagalovVkDbmsProjectInternalModels1(in 
 			out.Votes = int(in.Int())
 		case "slug":
 			out.Slug = string(in.String())
-		case "created_at":
+		case "created":
 			if data := in.Raw(); in.Ok() {
-				in.AddError((out.CreatedAt).UnmarshalJSON(data))
+				in.AddError((out.Created).UnmarshalJSON(data))
 			}
 		default:
 			in.SkipRecursive()
@@ -170,9 +170,9 @@ func easyjson2d00218EncodeGithubComSlavaShagalovVkDbmsProjectInternalModels1(out
 		out.String(string(in.Slug))
 	}
 	{
-		const prefix string = ",\"created_at\":"
+		const prefix string = ",\"created\":"
 		out.RawString(prefix)
-		out.Raw((in.CreatedAt).MarshalJSON())
+		out.Raw((in.Created).MarshalJSON())
 	}
 	out.RawByte('}')
 }

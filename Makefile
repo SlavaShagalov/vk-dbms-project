@@ -35,6 +35,8 @@ run: build-image
 		-p 5000:5000 \
 	  	forum_backend
 
+#		-d \
+
 .PHONY: stop
 stop:
 	docker stop f_backend
@@ -42,3 +44,8 @@ stop:
 .PHONY: logs
 logs:
 	docker logs -f f_backend
+
+
+.PHONY: restart
+restart: stop run
+

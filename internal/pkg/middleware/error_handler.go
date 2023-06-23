@@ -17,27 +17,26 @@ func HandleError(handler func(w http.ResponseWriter, r *http.Request, p httprout
 			}
 		}()
 
+		w.Header().Set("Content-Type", "application/json")
 		err := handler(w, r, p)
 		if err != nil {
-			errCause := errors.Cause(err)
-
-			httpCode, exist := pkgErrors.GetHTTPCodeByError(errCause)
+			httpCode, exist := pkgErrors.GetHTTPCodeByError(err)
 			if !exist {
-				errCause = errors.Wrap(errCause, "undefined error")
+				err = errors.Wrap(err, "undefined error")
 			}
-			w.WriteHeader(httpCode)
 
 			if httpCode >= 500 {
 				log.Error("Internal Server Error", zap.Int("http_code", httpCode), zap.String("error", err.Error()))
 			} else {
-				log.Info("Response", zap.Int("http_code", httpCode), zap.String("message", errCause.Error()))
+				log.Info("Response", zap.Int("http_code", httpCode), zap.String("message", err.Error()))
 			}
 
-			if httpCode != http.StatusNoContent {
-				_, err = w.Write([]byte(errCause.Error()))
-				if err != nil {
-					log.Error(err.Error())
-				}
+			response := ErrorResponse{Message: err.Error()}
+			body, _ := response.MarshalJSON()
+			w.WriteHeader(httpCode)
+			_, err = w.Write(body)
+			if err != nil {
+				log.Error(err.Error())
 			}
 		}
 	}

@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS threads
     message    text   NOT NULL,
     votes      int                      DEFAULT 0,
     slug       citext,
-    created_at timestamp with time zone DEFAULT now()
+    created timestamp with time zone DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS posts

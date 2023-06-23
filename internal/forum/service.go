@@ -7,8 +7,8 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, forum *models.Forum) (*models.Forum, error)
+	CreateThread(thread *models.Thread) (models.Thread, error)
 	GetForumUsers(ctx context.Context, slug string, limit int, since string, desc bool) (models.UserList, error)
 	Get(ctx context.Context, slug string) (*models.Forum, error)
 	GetForumThreads(ctx context.Context, slug string, limit int, since string, desc bool) (models.ThreadList, error)
-	//CreateThread(ctx context.Context, thread *models.Thread) (models.Thread, error)
 }

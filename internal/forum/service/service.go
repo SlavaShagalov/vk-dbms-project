@@ -20,6 +20,10 @@ func (serv *service) Create(ctx context.Context, forum *models.Forum) (*models.F
 	return serv.rep.Create(ctx, forum)
 }
 
+func (serv *service) CreateThread(thread *models.Thread) (models.Thread, error) {
+	return serv.rep.CreateThread(thread)
+}
+
 func (serv *service) Get(ctx context.Context, slug string) (*models.Forum, error) {
 	return serv.rep.Get(ctx, slug)
 }

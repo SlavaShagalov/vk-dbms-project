@@ -60,8 +60,8 @@ func main() {
 
 	// Delivery
 	userDelivery.RegisterHandlers(router, logger, userServ)
-	forumDelivery.RegisterHandlers(router, logger, forumServ)
 	threadDelivery.RegisterHandlers(router, logger, threadServ)
+	forumDelivery.RegisterHandlers(router, logger, forumServ)
 	postDelivery.RegisterHandlers(router, logger, postServ)
 	serviceDelivery.RegisterHandlers(router, logger, serviceServ)
 
